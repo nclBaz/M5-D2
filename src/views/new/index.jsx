@@ -19,7 +19,7 @@ export default class NewBlogPost extends Component {
   postBlog = async (e) => {
     e.preventDefault();
     try {
-      let response = await fetch("http://localhost:3001/authors", {
+      let response = await fetch("http://localhost:3001/posts", {
         method: "post",
         headers: {
           "Content-Type": "application/json",
