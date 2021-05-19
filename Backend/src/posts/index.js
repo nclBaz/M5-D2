@@ -5,10 +5,15 @@ import { dirname, join } from "path";
 import uniqid from "uniqid";
 
 const postsRouter = express.Router();
-const indexFilePath = fileURLToPath(import.meta.url);
-const folderPath = dirname(indexFilePath);
-const jsonFilePath = join(folderPath, "posts.json");
+
+const jsonFilePath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "posts.json"
+);
 const fileContent = JSON.parse(fs.readFileSync(jsonFilePath).toString());
+
+const writeFile = (content) =>
+  fs.writeFileSync(jsonFilePath, JSON.stringify(content));
 
 postsRouter.post("/", (req, res) => {
   const newPost = {
@@ -24,7 +29,7 @@ postsRouter.post("/", (req, res) => {
   };
   fileContent.push(newPost);
 
-  fs.writeFileSync(jsonFilePath, JSON.stringify(fileContent));
+  writeFile(fileContent);
   res.status(201).send();
 });
 
