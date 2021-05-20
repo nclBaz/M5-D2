@@ -1,5 +1,5 @@
 import express from "express";
-import fs from "fs";
+import fs from "fs-extra";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import uniqid from "uniqid";
@@ -20,11 +20,8 @@ const writeFile = (content) =>
 authorsRouter.post("/", authorsValidator, (req, res, next) => {
   try {
     const validationErrors = validationResult(req);
-    console.log("validation: ", validationErrors);
 
-    if (!validationErrors.isEmpty()) {
-      next(createError(400, { errorList: validationErrors }));
-    } else {
+    if (validationErrors.isEmpty()) {
       const newAuthor = {
         ...req.body,
         id: uniqid(),
@@ -32,7 +29,9 @@ authorsRouter.post("/", authorsValidator, (req, res, next) => {
       };
       fileContent.push(newAuthor);
       writeFile(fileContent);
-      res.status(201).send(newAuthor);
+      res.status(201).send(newAuthor.id);
+    } else {
+      next(createError(400, { errorList: validationErrors }));
     }
   } catch (error) {
     next(error);
