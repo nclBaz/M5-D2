@@ -20,19 +20,20 @@ const writeFile = (content) =>
 authorsRouter.post("/", authorsValidator, (req, res, next) => {
   try {
     const validationErrors = validationResult(req);
+    console.log("validation: ", validationErrors);
 
-    // if (validationErrors.isEmpty()) {
-    const newAuthor = {
-      ...req.body,
-      id: uniqid(),
-      avatar: "https://picsum.photos/50/50",
-    };
-    fileContent.push(newAuthor);
-    writeFile(fileContent);
-    res.status(201).send(newAuthor);
-    // } else {
-    next(createError(404, { errorList: validationErrors }));
-    // }
+    if (!validationErrors.isEmpty()) {
+      next(createError(400, { errorList: validationErrors }));
+    } else {
+      const newAuthor = {
+        ...req.body,
+        id: uniqid(),
+        avatar: "https://picsum.photos/50/50",
+      };
+      fileContent.push(newAuthor);
+      writeFile(fileContent);
+      res.status(201).send(newAuthor);
+    }
   } catch (error) {
     next(error);
   }
