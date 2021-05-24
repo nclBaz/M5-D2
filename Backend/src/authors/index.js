@@ -1,35 +1,28 @@
 import express from "express";
-import fs from "fs-extra";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
 import uniqid from "uniqid";
 import createError from "http-errors";
 import { authorsValidator } from "./validation.js";
 import { validationResult } from "express-validator";
+import { getAuthors, writeAuthors } from "../lib/fs-tools.js";
 
 const authorsRouter = express.Router();
-const jsonFilePath = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "authors.json"
-);
-const fileContent = JSON.parse(fs.readFileSync(jsonFilePath).toString());
 
-const writeFile = (content) =>
-  fs.writeFileSync(jsonFilePath, JSON.stringify(content));
-
-authorsRouter.post("/", authorsValidator, (req, res, next) => {
+authorsRouter.post("/", authorsValidator, async (req, res, next) => {
   try {
     const validationErrors = validationResult(req);
+    const authors = await getAuthors();
 
     if (validationErrors.isEmpty()) {
       const newAuthor = {
         ...req.body,
-        id: uniqid(),
+        _id: uniqid(),
         avatar: "https://picsum.photos/50/50",
       };
-      fileContent.push(newAuthor);
-      writeFile(fileContent);
-      res.status(201).send(newAuthor.id);
+      authors.push(newAuthor);
+      console.log(authors);
+
+      await writeAuthors(authors);
+      res.status(201).send(newAuthor._id);
     } else {
       next(createError(400, { errorList: validationErrors }));
     }
@@ -38,10 +31,11 @@ authorsRouter.post("/", authorsValidator, (req, res, next) => {
   }
 });
 
-authorsRouter.get("/", (req, res, next) => {
+authorsRouter.get("/", async (req, res, next) => {
   try {
-    if (fileContent.length > 0) {
-      res.send(fileContent);
+    const authors = await getAuthors();
+    if (authors.length > 0) {
+      res.send(authors);
     } else {
       next(createError(404, `No author found!`));
     }
@@ -50,12 +44,13 @@ authorsRouter.get("/", (req, res, next) => {
   }
 });
 
-authorsRouter.get("/:id", (req, res, next) => {
+authorsRouter.get("/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
-    const target = fileContent.find((elem) => elem.id === id);
+    const authors = await getAuthors();
+    const target = authors.find((elem) => elem._id === id);
 
-    if (targer) {
+    if (target) {
       res.send(target);
     } else {
       next(
@@ -67,28 +62,30 @@ authorsRouter.get("/:id", (req, res, next) => {
   }
 });
 
-authorsRouter.put("/:id", (req, res, next) => {
+authorsRouter.put("/:id", async (req, res, next) => {
   try {
-    let remainings = fileContent.filter((elem) => elem.id !== req.params.id);
+    const authors = await getAuthors();
+    let remainings = authors.filter((elem) => elem._id !== req.params.id);
     const newTarget = {
       ...req.body,
-      id: req.params.id,
+      _id: req.params.id,
       avatar: "https://picsum.photos/50/50",
     };
     remainings.push(newTarget);
-    console.log(remainings);
-    writeFile(remainings);
+    await writeAuthors(remainings);
     res.status(201).send(newTarget);
   } catch (error) {
     next(error);
   }
 });
 
-authorsRouter.delete("/:id", (req, res) => {
+authorsRouter.delete("/:id", async (req, res, next) => {
   try {
-    const target = fileContent.filter((elem) => elem.id === req.params.id);
+    const authors = await getAuthors();
 
-    if (targer.length === 0) {
+    const target = authors.filter((elem) => elem._id === req.params.id);
+
+    if (target.length === 0 || authors.length === 0) {
       next(
         createError(
           404,
@@ -96,9 +93,9 @@ authorsRouter.delete("/:id", (req, res) => {
         )
       );
     } else {
-      let remainings = fileContent.filter((elem) => elem.id !== req.params.id);
-      writeFile(remainings);
-      res.status(200).send("deleted");
+      let remainings = authors.filter((elem) => elem._id !== req.params.id);
+      await writeAuthors(remainings);
+      res.status(200).send("deleted successfully");
     }
   } catch (error) {
     next(error);

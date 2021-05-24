@@ -11,3 +11,9 @@ export const getAuthors = async () =>
 
 export const getPosts = async () =>
   await readJSON(join(dataFolderPath, "posts.json"));
+
+export const writeAuthors = async (content) =>
+  await writeJSON(join(dataFolderPath, "authors.json"), content);
+
+export const writePosts = async (content) =>
+  await writeJSON(join(dataFolderPath, "posts.json"), content);
