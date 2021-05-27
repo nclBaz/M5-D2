@@ -18,8 +18,10 @@ export default class NewBlogPost extends Component {
 
   postBlog = async (e) => {
     e.preventDefault();
+    const apiUrl = process.env.REACT_APP_API_URL;
+
     try {
-      let response = await fetch("http://localhost:3001/posts", {
+      let response = await fetch(`${apiUrl}/posts`, {
         method: "post",
         headers: {
           "Content-Type": "application/json",

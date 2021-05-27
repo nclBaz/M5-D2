@@ -12,7 +12,8 @@ class Blog extends Component {
     const { id } = this.props.match.params;
     // console.log(posts);
     try {
-      const res = await fetch(`http://localhost:3001/posts/${id}`);
+      const apiUrl = process.env.REACT_APP_API_URL;
+      const res = await fetch(`${apiUrl}/posts/${id}`);
       if (res.ok) {
         const data = await res.json();
         this.setState({ blog: data, loading: false });

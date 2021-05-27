@@ -24,6 +24,7 @@ const corsOptions = {
     }
   },
 };
+
 // Middlewares
 server.use(express.static(publicDirPath));
 server.use(express.json());
