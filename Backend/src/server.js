@@ -8,16 +8,32 @@ import { join } from "path";
 import { getCurrentFolderPath } from "./lib/fs-tools.js";
 
 const server = express();
-const port = 3001;
-
+const port = process.env.PORT || 3001;
 const publicDirPath = join(getCurrentFolderPath(import.meta.url), "../public");
+const whiteList = [
+  process.env.FRONTEND_DEV_URL,
+  process.env.FRONTEND_CLOUD_URL,
+];
+const corsOptions = {
+  origin: function (origin, next) {
+    console.log("ORIGIN ", origin);
+    if (whiteList.indexOf(origin) !== -1) {
+      next(null, true);
+    } else {
+      next(new Error("CORS TROUBLES!!!!!"));
+    }
+  },
+};
+// Middlewares
 server.use(express.static(publicDirPath));
 server.use(express.json());
-server.use(cors());
+server.use(cors(corsOptions));
 
+// Routes
 server.use("/authors", authorsRouter);
 server.use("/posts", postsRouter);
 
+// Error Handler
 server.use(errorHandler);
 
 console.table(listEndpoints(server));
