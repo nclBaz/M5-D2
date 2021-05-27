@@ -3,7 +3,12 @@ import uniqid from "uniqid";
 import createError from "http-errors";
 import { authorsValidator } from "./validation.js";
 import { validationResult } from "express-validator";
-import { getAuthors, writeAuthors } from "../lib/fs-tools.js";
+import {
+  getAuthors,
+  writeAuthors,
+  writeAuthorsAvatar,
+} from "../lib/fs-tools.js";
+import multer from "multer";
 
 const authorsRouter = express.Router();
 
@@ -101,5 +106,18 @@ authorsRouter.delete("/:id", async (req, res, next) => {
     next(error);
   }
 });
+
+authorsRouter.post(
+  "/:id/uploadAvatar",
+  multer().single("avatar"),
+  async (req, res, next) => {
+    try {
+      await writeAuthorsAvatar(req.file.buffer, req.params.id + ".jpg");
+      res.send("avatar uploaded successfully");
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 export default authorsRouter;

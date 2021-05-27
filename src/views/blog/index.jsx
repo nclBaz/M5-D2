@@ -2,26 +2,31 @@ import React, { Component } from "react";
 import { Container, Image } from "react-bootstrap";
 import { withRouter } from "react-router";
 import BlogAuthor from "../../components/blog/blog-author";
-import posts from "../../data/posts.json";
 import "./styles.css";
 class Blog extends Component {
   state = {
     blog: {},
     loading: true,
   };
-  componentDidMount() {
+  async componentDidMount() {
     const { id } = this.props.match.params;
-    console.log(posts);
-    const blog = posts.find((post) => post._id.toString() === id);
-    if (blog) {
-      this.setState({ blog, loading: false });
-    } else {
-      this.props.history.push("/404");
+    // console.log(posts);
+    try {
+      const res = await fetch(`http://localhost:3001/posts/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        this.setState({ blog: data, loading: false });
+      } else {
+        throw new Error("something went wrong with the fetch!");
+      }
+    } catch (error) {
+      alert(error.message);
     }
   }
 
   render() {
     const { loading, blog } = this.state;
+    console.log("blog ", blog);
     if (loading) {
       return <div>loading</div>;
     } else {
